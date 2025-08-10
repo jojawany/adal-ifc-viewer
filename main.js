@@ -21,6 +21,10 @@ const tabTree   = document.getElementById('tab-tree');
 const panelProps= document.getElementById('panel-props');
 const panelTree = document.getElementById('panel-tree');
 
+// عناصر المشاركة (قد تكون غير موجودة لو ما عدّلتي الـ HTML بعد)
+const uploadBtn = document.getElementById('upload');
+const shareSpan = document.getElementById('share');
+
 statusEl.textContent = 'جاهز - اسحبي الملف أو اختاريه';
 
 const viewer = new IfcViewerAPI({
@@ -188,25 +192,50 @@ async function loadIfcFromUrl(url){
   }
 }
 
+// ---------- مشاركة ورفع ----------
+async function getUploadUrl(filename, contentType){
+  const q = new URLSearchParams({
+    filename: filename || 'model.ifc',
+    contentType: contentType || 'application/octet-stream'
+  }).toString();
+  const r = await fetch(`/api/upload-url?${q}`);
+  if(!r.ok) throw new Error('Failed to get upload URL');
+  const { url } = await r.json();
+  return url;
+}
+async function uploadForShare(file){
+  const uploadUrl = await getUploadUrl(file.name, file.type || 'application/octet-stream');
+  const put = await fetch(uploadUrl, { method: 'PUT', body: file });
+  if(!put.ok) throw new Error('Upload failed');
+  const uploaded = await put.json(); // { url, ... }
+  return uploaded.url;
+}
+
 // ---------- Events ----------
 fileInput.addEventListener('change', async (e)=>{
-  const file = e.target.files?.[0]; if(!file) return;
+  const file = e.target.files?.[0]; 
+  if(uploadBtn) uploadBtn.disabled = !file;
+  if(!file) return;
   const url = URL.createObjectURL(file);
   await loadIfcFromUrl(url);
   URL.revokeObjectURL(url);
+  if(shareSpan) shareSpan.textContent = ''; // امسحي أي رسالة قديمة
 });
 
 container.addEventListener('dragover', (e)=>{ e.preventDefault(); container.classList.add('drop'); });
 container.addEventListener('dragleave', ()=> container.classList.remove('drop'));
 container.addEventListener('drop', async (e)=>{
   e.preventDefault(); container.classList.remove('drop');
-  const f = e.dataTransfer.files?.[0]; if(!f) return;
+  const f = e.dataTransfer.files?.[0]; 
+  if(uploadBtn) uploadBtn.disabled = !f;
+  if(!f) return;
   const url = URL.createObjectURL(f);
   await loadIfcFromUrl(url);
   URL.revokeObjectURL(url);
+  if(shareSpan) shareSpan.textContent = '';
 });
 
-// نضيف أحداث التحديد بعد تهيئة WASM
+// أحداث التحديد بعد تهيئة WASM
 ifcReady.then(()=>{
   window.addEventListener('mousemove', ()=> viewer.IFC.selector.prePickIfcItem());
   window.addEventListener('click', async ()=>{
@@ -224,10 +253,12 @@ clearBtn.addEventListener('click', ()=>{
   treeWrap.innerHTML=''; treeCount.textContent='';
   clearProps();
   clearBtn.disabled = true; fitBtn.disabled = true;
+  if(uploadBtn) uploadBtn.disabled = true;
+  if(shareSpan) shareSpan.textContent = '';
   setStatus('تم مسح المشهد');
 });
 
-// Toggles
+// زر الثيم/الشبكة/المحاور
 gridBtn.addEventListener('click', ()=>{ viewer.grid.visible = !viewer.grid.visible; });
 axesBtn.addEventListener('click', ()=>{ viewer.axes.visible = !viewer.axes.visible; });
 themeBtn.addEventListener('click', ()=>{
@@ -248,3 +279,46 @@ clipClear.addEventListener('click', ()=> viewer.clipper.deleteAllPlanes());
 // Tabs
 tabProps.addEventListener('click', ()=> switchTab('props'));
 tabTree .addEventListener('click', ()=> switchTab('tree'));
+
+// ---------- تحميل تلقائي من ?file= ----------
+(function autoLoadFromQuery(){
+  const fileUrl = new URL(location.href).searchParams.get('file');
+  if(fileUrl){
+    try { loadIfcFromUrl(fileUrl); }
+    catch(e){ console.warn('Auto-load failed', e); }
+  }
+})();
+
+// ---------- رفع للمشاركة ----------
+if (uploadBtn) {
+  uploadBtn.addEventListener('click', async ()=>{
+    const file = fileInput.files?.[0];
+    if(!file) return;
+    try{
+      if(shareSpan) shareSpan.textContent = 'جاري الرفع...';
+      uploadBtn.disabled = true;
+
+      const blobUrl = await uploadForShare(file);
+
+      const site = `${location.origin}${location.pathname}`;
+      const shareLink = `${site}?file=${encodeURIComponent(blobUrl)}`;
+
+      if(shareSpan){
+        shareSpan.innerHTML = `
+          تم الرفع ✅
+          <a href="${shareLink}" target="_blank" rel="noopener">فتح الرابط</a>
+          <button id="copyLink" class="btn" style="height:24px;padding:0 8px;margin-inline-start:6px">نسخ</button>
+        `;
+        document.getElementById('copyLink')?.addEventListener('click', async ()=>{
+          await navigator.clipboard.writeText(shareLink);
+          shareSpan.innerHTML += ' <span style="color:green">— نُسِخ الرابط</span>';
+        });
+      }
+    }catch(err){
+      console.error(err);
+      if(shareSpan) shareSpan.textContent = 'فشل الرفع ❌';
+    }finally{
+      uploadBtn.disabled = false;
+    }
+  });
+}
