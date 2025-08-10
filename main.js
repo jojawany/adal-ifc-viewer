@@ -219,7 +219,7 @@ fileInput.addEventListener('change', async (e)=>{
   const url = URL.createObjectURL(file);
   await loadIfcFromUrl(url);
   URL.revokeObjectURL(url);
-  if(shareSpan) shareSpan.textContent = ''; // امسحي أي رسالة قديمة
+  if(shareSpan) shareSpan.textContent = ''; // امسح أي رسالة قديمة
 });
 
 container.addEventListener('dragover', (e)=>{ e.preventDefault(); container.classList.add('drop'); });
@@ -302,6 +302,8 @@ if (uploadBtn) {
 
       const site = `${location.origin}${location.pathname}`;
       const shareLink = `${site}?file=${encodeURIComponent(blobUrl)}`;
+await navigator.clipboard.writeText(shareLink);
+alert('تم نسخ رابط المشاركة:\n' + shareLink);
 
       if(shareSpan){
         shareSpan.innerHTML = `
