@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ادال للاستشارات الهندسية | IFC Viewer</title>
+    <style>
+      :root{
+        --bg:#ffffff; --fg:#0f172a; --muted:#6b7280; --bar:#f6f6f6; --line:#e5e7eb;
+        --panel:#fafafa; --panelLine:#e5e7eb;
+        --barH:56px; /* ارتفاع شريط الأدوات */
+      }
+      :root[data-theme="dark"]{
+        --bg:#0f1115; --fg:#e5e7eb; --muted:#9ca3af; --bar:#151821; --line:#2a2f3a;
+        --panel:#151821; --panelLine:#2a2f3a;
+      }
+      html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
+        font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+      #topbar{position:absolute;inset:0 320px auto 0;height:var(--barH);background:var(--bar);
+        border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;padding:0 12px;z-index:10}
+      #viewer{position:absolute;top:var(--barH);left:0;right:320px;bottom:0;outline:none}
+      #sidebar{position:absolute;top:0;right:0;bottom:0;width:320px;background:var(--panel);
+        border-left:1px solid var(--panelLine);display:flex;flex-direction:column}
+      .btn{height:32px;padding:0 10px;border:1px solid var(--panelLine);background:transparent;
+        border-radius:8px;cursor:pointer;color:var(--fg)}
+      .btn:disabled{opacity:.6;cursor:not-allowed}
+      .sep{width:1px;height:24px;background:var(--panelLine);margin:0 4px}
+      #status{font-size:13px;color:var(--muted);margin-inline-start:8px}
+      label{font-size:13px;color:var(--muted)}
+      input[type="file"]{height:32px}
+
+      /* Sidebar */
+      .tabs{display:flex;border-bottom:1px solid var(--panelLine)}
+      .tab{flex:1;padding:10px 12px;text-align:center;cursor:pointer}
+      .tab.active{font-weight:600;border-bottom:2px solid #3b82f6}
+      .side-scroll{overflow:auto;flex:1;padding:10px}
+      .kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:13px;align-items:center}
+      .k{color:var(--muted)}
+      .v{word-break:break-all}
+      .tree ul{list-style:none;padding:0 0 0 10px;margin:0}
+      .tree li{padding:4px 0;cursor:pointer;font-size:13px}
+      .tree li span{opacity:.9}
+      .tree li:hover{opacity:1;text-decoration:underline}
+
+      /* Drag & drop hint */
+      #viewer.drop{outline:2px dashed #3b82f6;outline-offset:-6px}
+
+      /* Tiny badges */
+      .badge{font-size:11px;border:1px solid var(--panelLine);padding:1px 6px;border-radius:999px;color:var(--muted)}
+
+      /* --- الشعار في التوب بار --- */
+      .brand{
+        display:flex;align-items:center;gap:10px;
+        padding-inline-end:10px;margin-inline-end:10px;
+        border-inline-end:1px solid var(--panelLine); text-decoration:none;
+      }
+      .brand img{height:32px;display:block}
+      .brand .title{font-weight:700;font-size:16px;color:var(--fg);white-space:nowrap}
+      html[data-theme="dark"] .brand img{filter:brightness(1.15)}
+      @media (max-width:900px){
+        .brand .title{display:none;} /* إخفاء النص على الشاشات الصغيرة لو المساحة ضيقة */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="topbar">
+      <!-- الشعار + اسم الموقع -->
+      <a class="brand" href="#" title="الرئيسية">
+        <img src="/adal-logo.png" alt="Adal Logo">
+        <span class="title">ادال للاستشارات الهندسية</span>
+      </a>
+
+      <label for="file">اختيار الملف:</label>
+      <input type="file" id="file" accept=".ifc" />
+      <button id="fit" class="btn" disabled>تمركز</button>
+      <div class="sep"></div>
+      <button id="grid" class="btn">شبكة</button>
+      <button id="axes" class="btn">محاور</button>
+      <div class="sep"></div>
+      <button id="clip" class="btn" title="فعّلي القص، ثم اضغطي Shift+Click داخل المشهد">تفعيل القص</button>
+      <button id="clipClear" class="btn">حذف القص</button>
+      <div class="sep"></div>
+      <button id="theme" class="btn">ثيم داكن</button>
+      <div class="sep"></div>
+      <button id="clear" class="btn" disabled>إعادة تعيين</button>
+      <span id="status"></span>
+    </div>
+
+    <div id="viewer" tabindex="0" aria-label="IFC 3D Viewer"></div>
+
+    <aside id="sidebar">
+      <div class="tabs">
+        <div id="tab-props" class="tab active">خصائص</div>
+        <div id="tab-tree"  class="tab">العناصر <span id="treeCount" class="badge"></span></div>
+      </div>
+      <div id="panel-props" class="side-scroll">
+        <div class="kv" id="props"></div>
+      </div>
+      <div id="panel-tree" class="side-scroll" style="display:none">
+        <div class="tree" id="tree"></div>
+      </div>
+    </aside>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
