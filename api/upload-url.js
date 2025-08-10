@@ -1,14 +1,26 @@
-// api/upload-url.js
+// api/upload-url.js  — Edge Function
+export const runtime = 'edge';
 import { generateUploadUrl } from '@vercel/blob';
 
-export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).end('Method Not Allowed');
+export default async function handler(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const contentType =
+      searchParams.get('contentType') || 'application/octet-stream';
 
-  const { filename = 'model.ifc', contentType = 'application/octet-stream' } = req.query || {};
-  const { url } = await generateUploadUrl({
-    contentType,
-    access: 'public', // الرابط يكون قابل للمشاركة
-  });
+    const { url } = await generateUploadUrl({
+      contentType,
+      access: 'public', // تجعل الملف قابلاً للمشاركة
+    });
 
-  res.status(200).json({ url });
+    return new Response(JSON.stringify({ url }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: err?.message || 'internal error' }),
+      { status: 500, headers: { 'content-type': 'application/json' } },
+    );
+  }
 }
