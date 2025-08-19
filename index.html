@@ -6,87 +6,100 @@
     <title>ادال للاستشارات الهندسية | IFC Viewer</title>
     <style>
       :root{
-        --bg:#ffffff; --fg:#0f172a; --muted:#6b7280; --bar:#f6f6f6; --line:#e5e7eb;
-        --panel:#fafafa; --panelLine:#e5e7eb;
-        --barH:56px; /* ارتفاع شريط الأدوات */
+        --bg:#ffffff; --fg:#0f172a; --muted:#6b7280; --bar:#f6f6f6; --line:#e5e7eb; --panel:#fafafa; --panelLine:#e5e7eb; --barH:56px;
       }
       :root[data-theme="dark"]{
-        --bg:#0f1115; --fg:#e5e7eb; --muted:#9ca3af; --bar:#151821; --line:#2a2f3a;
-        --panel:#151821; --panelLine:#2a2f3a;
+        --bg:#0f1115; --fg:#e5e7eb; --muted:#9ca3af; --bar:#151821; --line:#2a2f3a; --panel:#151821; --panelLine:#2a2f3a;
       }
-      html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
-        font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-      #topbar{position:absolute;inset:0 320px auto 0;height:var(--barH);background:var(--bar);
-        border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;padding:0 12px;z-index:10}
+      html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+
+      /* الشريط العلوي */
+      #topbar{
+        position:absolute;inset:0 320px auto 0;height:var(--barH);
+        background:var(--bar);border-bottom:1px solid var(--line);
+        display:flex;gap:8px;align-items:center;padding:0 12px;z-index:10;
+        overflow-x:auto; white-space:nowrap; scrollbar-width:thin;
+      }
       #viewer{position:absolute;top:var(--barH);left:0;right:320px;bottom:0;outline:none}
-      #sidebar{position:absolute;top:0;right:0;bottom:0;width:320px;background:var(--panel);
-        border-left:1px solid var(--panelLine);display:flex;flex-direction:column}
-      .btn{height:32px;padding:0 10px;border:1px solid var(--panelLine);background:transparent;
-        border-radius:8px;cursor:pointer;color:var(--fg)}
+      #sidebar{position:absolute;top:0;right:0;bottom:0;width:320px;background:var(--panel);border-left:1px solid var(--panelLine);display:flex;flex-direction:column}
+
+      .btn{height:32px;padding:0 10px;border:1px solid var(--panelLine);background:transparent;border-radius:8px;cursor:pointer;color:var(--fg)}
       .btn:disabled{opacity:.6;cursor:not-allowed}
       .sep{width:1px;height:24px;background:var(--panelLine);margin:0 4px}
       #status{font-size:13px;color:var(--muted);margin-inline-start:8px}
       label{font-size:13px;color:var(--muted)}
       input[type="file"]{height:32px}
 
-      /* Sidebar */
+      /* الشريط الجانبي */
       .tabs{display:flex;border-bottom:1px solid var(--panelLine)}
       .tab{flex:1;padding:10px 12px;text-align:center;cursor:pointer}
       .tab.active{font-weight:600;border-bottom:2px solid #3b82f6}
       .side-scroll{overflow:auto;flex:1;padding:10px}
       .kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:13px;align-items:center}
-      .k{color:var(--muted)}
-      .v{word-break:break-all}
+      .k{color:var(--muted)} .v{word-break:break-all}
       .tree ul{list-style:none;padding:0 0 0 10px;margin:0}
       .tree li{padding:4px 0;cursor:pointer;font-size:13px}
-      .tree li span{opacity:.9}
-      .tree li:hover{opacity:1;text-decoration:underline}
-
-      /* Drag & drop hint */
+      .tree li:hover{text-decoration:underline}
       #viewer.drop{outline:2px dashed #3b82f6;outline-offset:-6px}
-
-      /* Tiny badges */
       .badge{font-size:11px;border:1px solid var(--panelLine);padding:1px 6px;border-radius:999px;color:var(--muted)}
 
-      /* --- الشعار في التوب بار --- */
-      .brand{
-        display:flex;align-items:center;gap:10px;
-        padding-inline-end:10px;margin-inline-end:10px;
-        border-inline-end:1px solid var(--panelLine); text-decoration:none;
-      }
+      /* الهوية */
+      .brand{display:flex;align-items:center;gap:10px;padding-inline-end:10px;margin-inline-end:10px;border-inline-end:1px solid var(--panelLine);text-decoration:none}
       .brand img{height:32px;display:block}
       .brand .title{font-weight:700;font-size:16px;color:var(--fg);white-space:nowrap}
       html[data-theme="dark"] .brand img{filter:brightness(1.15)}
-      @media (max-width:900px){
-        .brand .title{display:none;} /* إخفاء النص على الشاشات الصغيرة لو المساحة ضيقة */
-      }
-
-      /* مساحة رابط المشاركة */
+      @media (max-width:900px){ .brand .title{display:none;} }
       #share{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:28ch}
       #share a{margin-inline-start:6px}
+      .prop-actions{display:flex;gap:8px;margin:8px 0}
+      .inputs-row{display:flex;gap:6px;align-items:center}
+      .inputs-row input[type="text"]{height:32px;border:1px solid var(--panelLine);border-radius:8px;padding:0 8px;background:transparent;color:var(--fg)}
+
+      /* شريط أدوات سفلي */
+      .quickbar{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;display:flex;gap:10px;z-index:15;background:var(--bg);border:1px solid var(--panelLine);border-radius:16px;padding:6px 10px;box-shadow:0 6px 24px rgba(0,0,0,.08)}
+      .qbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--panelLine);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg)}
+      .qbtn.active{outline:2px solid #3b82f6}
+      .qbtn svg{width:20px;height:20px;fill:currentColor}
+      .popover{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--panelLine);border-radius:12px;padding:8px 10px;display:none;gap:10px;z-index:16}
+      .popover.show{display:flex}
+      .popover label{font-size:12px}
+      .popover input[type=range]{width:180px}
+
+      /* لوحة النماذج */
+      .models-dock{
+        position:absolute; top:calc(var(--barH) + 12px); right:332px; /* قبل الشريط الجانبي بـ ~12px */
+        max-height:calc(100% - var(--barH) - 30px); width:220px;
+        background:var(--bg); border:1px solid var(--panelLine); border-radius:12px;
+        box-shadow:0 6px 24px rgba(0,0,0,.06); padding:8px; overflow:auto; z-index:12;
+      }
+      .models-dock h4{margin:4px 8px 8px;font-size:13px;color:var(--muted)}
+      .mdl-row{display:flex;align-items:center;gap:8px;padding:6px;border:1px solid var(--panelLine);border-radius:10px;margin:6px 0;background:transparent}
+      .mdl-row.active{background:rgba(59,130,246,.08)}
+      .mdl-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .mdl-eye{width:28px;height:28px;border-radius:8px;border:1px solid var(--panelLine);background:transparent;cursor:pointer}
+      @media (max-width:1100px){ .models-dock{right: 8px;} } /* لو الشاشة ضيقة بدون شريط جانبي */
     </style>
   </head>
   <body>
     <div id="topbar">
-      <!-- الشعار + اسم الموقع -->
-      <a class="brand" href="#" title="الرئيسية">
-        <img src="/adal-logo.png" alt="Adal Logo">
-        <span class="title">ادال للاستشارات الهندسية</span>
-      </a>
+      <a class="brand" href="#"><img src="/adal-logo.png" alt="Adal"><span class="title">ادال للاستشارات الهندسية</span></a>
 
       <label for="file">اختيار الملف:</label>
-      <input type="file" id="file" accept=".ifc" />
-      <!-- زر رفع للمشاركة + مكان عرض الرابط -->
+      <input type="file" id="file" accept=".ifc"/>
       <button id="upload" class="btn" disabled>رفع للمشاركة</button>
       <span id="share"></span>
+
+      <div class="sep"></div>
+
+      <div class="inputs-row">
+        <input id="openUrl" type="text" placeholder="الصق رابط IFC مباشر…" style="min-width:240px">
+        <button id="openUrlBtn" class="btn">فتح URL</button>
+      </div>
 
       <button id="fit" class="btn" disabled>تمركز</button>
       <div class="sep"></div>
       <button id="grid" class="btn">شبكة</button>
       <button id="axes" class="btn">محاور</button>
-      <div class="sep"></div>
-      <button id="clip" class="btn" title="فعّلي القص، ثم اضغطي Shift+Click داخل المشهد">تفعيل القص</button>
-      <button id="clipClear" class="btn">حذف القص</button>
       <div class="sep"></div>
       <button id="theme" class="btn">ثيم داكن</button>
       <div class="sep"></div>
@@ -96,16 +109,73 @@
 
     <div id="viewer" tabindex="0" aria-label="IFC 3D Viewer"></div>
 
+    <!-- لوحة النماذج (أزرار إظهار/إخفاء لكل ملف) -->
+    <div id="modelsDock" class="models-dock" style="display:none">
+      <h4>الملفات المرفوعة</h4>
+      <div id="modelsList"></div>
+    </div>
+
+    <!-- شريط أدوات سفلي -->
+    <div class="quickbar" id="quickbar">
+      <button id="qb-measure" class="qbtn" title="قياس">
+        <svg viewBox="0 0 24 24"><path d="M3 17l10-10 4 4L7 21H3v-4zm14.8-9.8l1.4-1.4a1 1 0 011.4 0l2.6 2.6a1 1 0 010 1.4l-1.4 1.4-4-4zM8 19l8-8-2-2-8 8v2h2z"/></svg>
+      </button>
+      <button id="qb-clearMeasures" class="qbtn" title="حذف القياسات">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm2 4h14l-1.2 10.4A2 2 0 0115.8 22H8.2a2 2 0 01-1.99-1.6L5 10zm4 2v6h2v-6H9zm4 0v6h2v-6h-2zM9 4h6l1 2H8l1-2z"/></svg>
+      </button>
+      <button id="qb-section" class="qbtn" title="قص (Shift+Click)">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16v10H4zM2 5v14h20V5H2zm7 4h6v6H9V9z"/></svg>
+      </button>
+      <button id="qb-sectionReset" class="qbtn" title="حذف القص">
+        <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+      </button>
+      <button id="qb-explode" class="qbtn" title="تفجير">
+        <svg viewBox="0 0 24 24"><path d="M3 12l7-7 2 5 5-2-7 7-2-5-5 2zm9 3l3 6 3-6-6 0z"/></svg>
+      </button>
+      <button id="qb-view" class="qbtn" title="نمط العرض">
+        <svg viewBox="0 0 24 24"><path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/></svg>
+      </button>
+      <button id="qb-light" class="qbtn" title="إضاءة">
+        <svg viewBox="0 0 24 24"><path d="M12 4a1 1 0 011 1v2a1 1 0 01-2 0V5a1 1 0 011-1zm0 12a5 5 0 110-10 5 5 0 010 10z"/></svg>
+      </button>
+    </div>
+
+    <!-- Popovers -->
+    <div id="pop-explode" class="popover" aria-label="تفجير">
+      <label>قوة التفجير</label>
+      <input id="explodeRange" type="range" min="0" max="1" step="0.02" value="0">
+    </div>
+    <div id="pop-light" class="popover" aria-label="إضاءة">
+      <label>شدة الإضاءة</label>
+      <input id="lightRange" type="range" min="0" max="2" step="0.05" value="1">
+    </div>
+
     <aside id="sidebar">
       <div class="tabs">
-        <div id="tab-props" class="tab active">خصائص</div>
+        <div id="tab-props" class="tab">خصائص</div>
         <div id="tab-tree"  class="tab">العناصر <span id="treeCount" class="badge"></span></div>
+        <div id="tab-stats" class="tab active">ملخص</div>
       </div>
-      <div id="panel-props" class="side-scroll">
+
+      <div id="panel-props" class="side-scroll" style="display:none">
+        <div class="prop-actions">
+          <button id="copyGid" class="btn" disabled>نسخ GlobalId</button>
+          <button id="downloadProps" class="btn" disabled>تنزيل خصائص (JSON)</button>
+        </div>
         <div class="kv" id="props"></div>
       </div>
+
       <div id="panel-tree" class="side-scroll" style="display:none">
+        <div class="inputs-row" style="margin-bottom:8px">
+          <input id="search" type="text" placeholder="ابحث بالاسم/النوع…">
+          <button id="clearSearch" class="btn">مسح</button>
+        </div>
         <div class="tree" id="tree"></div>
+      </div>
+
+      <div id="panel-stats" class="side-scroll">
+        <div style="margin-bottom:8px"><canvas id="statsChart" height="260"></canvas></div>
+        <div id="statsList" class="kv"></div>
       </div>
     </aside>
 

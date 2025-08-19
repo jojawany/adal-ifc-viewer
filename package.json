@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@vercel/blob": "^1.1.1",
+    "chart.js": "^4.5.0",
     "three": "^0.135.0",
     "web-ifc": "^0.0.35",
     "web-ifc-viewer": "^1.0.189"
